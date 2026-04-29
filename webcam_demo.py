@@ -1,5 +1,4 @@
-""" For the live demonstration, we will use the webcam to capture video frames and run our trained model on them in real-time. 
-This script will load the trained model, access the webcam, and display the video feed with predictions overlaid on it. """
+"""Live webcam demo for chair detection."""
 
 import cv2
 import torch
@@ -8,8 +7,8 @@ from torchvision.transforms.functional import to_tensor
 from args import DEVICE
 from model import build_model
 
-MODEL_PATH = "runs/best_model.pth"
-SCORE_THRESHOLD = 0.5
+MODEL_PATH = "runs/best_model30.pth"
+SCORE_THRESHOLD = 0.59
 
 device = torch.device(DEVICE)
 
@@ -30,7 +29,6 @@ while True:
     if not ret:
         break
 
-    # OpenCV uses BGR, PyTorch expects RGB
     rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     image_tensor = to_tensor(rgb_frame).to(device)
 
@@ -40,9 +38,16 @@ while True:
     boxes = prediction["boxes"].cpu()
     scores = prediction["scores"].cpu()
 
-    for box, score in zip(boxes, scores):
-        if score < SCORE_THRESHOLD:
-            continue
+    valid = scores >= SCORE_THRESHOLD
+
+    if valid.any():
+        valid_boxes = boxes[valid]
+        valid_scores = scores[valid]
+
+        best_index = valid_scores.argmax()
+
+        box = valid_boxes[best_index]
+        score = valid_scores[best_index]
 
         x1, y1, x2, y2 = box.int().tolist()
 
