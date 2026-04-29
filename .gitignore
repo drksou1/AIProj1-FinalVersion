@@ -1,0 +1,10 @@
+data/*
+!data/images/.gitkeep
+!data/labels/.gitkeep
+!data/CSVs/.gitkeep
+
+__pycache__/
+*.pyc
+.venv/
+
+runs/
